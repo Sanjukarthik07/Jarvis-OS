@@ -1,0 +1,51 @@
+:root {
+  --jarvis-blue: #00f0ff;
+  --jarvis-blue-dim: rgba(0, 240, 255, 0.2);
+  --jarvis-blue-glow: 0 0 10px rgba(0, 240, 255, 0.5), 0 0 20px rgba(0, 240, 255, 0.3);
+  --jarvis-orange: #ffaa00;
+  --jarvis-red: #ff3333;
+  --jarvis-bg: #050b14;
+  --jarvis-panel: rgba(10, 20, 35, 0.7);
+  --jarvis-border: rgba(0, 240, 255, 0.3);
+  
+  --font-main: 'Rajdhani', sans-serif;
+  --font-mono: 'Share Tech Mono', monospace;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background-color: var(--jarvis-bg);
+  color: var(--jarvis-blue);
+  font-family: var(--font-main);
+  overflow: hidden; /* Mobile OS feel */
+  background-image: 
+    linear-gradient(rgba(0, 240, 255, 0.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0, 240, 255, 0.05) 1px, transparent 1px);
+  background-size: 30px 30px;
+  background-position: center center;
+}
+
+#root {
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Custom Scrollbar for inner elements */
+::-webkit-scrollbar {
+  width: 4px;
+}
+::-webkit-scrollbar-track {
+  background: rgba(0,0,0,0.2);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--jarvis-blue);
+  border-radius: 4px;
+}
