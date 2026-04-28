@@ -7,6 +7,7 @@ import './App.css';
 
 function App() {
   const [isUnlocked, setIsUnlocked] = useState(false);
+  const [isInitialized, setIsInitialized] = useState(false);
   const [authError, setAuthError] = useState('');
   
   const [currentTime, setCurrentTime] = useState(new Date());
@@ -52,8 +53,39 @@ function App() {
 
   const unlockSystem = () => {
     setIsUnlocked(true);
-    setResponse('Biometric signature verified. Welcome back, Sir.');
-    speak('Biometric signature verified. Welcome back, Sir.');
+    setResponse('Biometric signature verified.');
+  };
+
+  const playActivationSound = () => {
+    try {
+      const ctx = new (window.AudioContext || window.webkitAudioContext)();
+      const osc1 = ctx.createOscillator();
+      const gain1 = ctx.createGain();
+      osc1.type = 'sine';
+      osc1.frequency.setValueAtTime(880, ctx.currentTime);
+      osc1.frequency.exponentialRampToValueAtTime(1760, ctx.currentTime + 0.1);
+      gain1.gain.setValueAtTime(0, ctx.currentTime);
+      gain1.gain.linearRampToValueAtTime(0.1, ctx.currentTime + 0.05);
+      gain1.gain.linearRampToValueAtTime(0, ctx.currentTime + 0.15);
+      osc1.connect(gain1);
+      gain1.connect(ctx.destination);
+      osc1.start();
+      osc1.stop(ctx.currentTime + 0.15);
+
+      const osc2 = ctx.createOscillator();
+      const gain2 = ctx.createGain();
+      osc2.type = 'sine';
+      osc2.frequency.setValueAtTime(1760, ctx.currentTime + 0.15);
+      gain2.gain.setValueAtTime(0, ctx.currentTime + 0.15);
+      gain2.gain.linearRampToValueAtTime(0.1, ctx.currentTime + 0.2);
+      gain2.gain.linearRampToValueAtTime(0, ctx.currentTime + 0.3);
+      osc2.connect(gain2);
+      gain2.connect(ctx.destination);
+      osc2.start(ctx.currentTime + 0.15);
+      osc2.stop(ctx.currentTime + 0.3);
+    } catch (e) {
+      console.log('Audio API not supported');
+    }
   };
 
   useEffect(() => {
@@ -97,7 +129,7 @@ function App() {
     }
 
     return () => clearInterval(timer);
-  }, [todo, continuousListening, isUnlocked]);
+  }, [todo, continuousListening, isUnlocked, isInitialized]);
 
   useEffect(() => {
     if (!isListening && transcript) {
@@ -133,6 +165,7 @@ function App() {
       setIsListening(false);
     } else {
       setTranscript('');
+      playActivationSound();
       try { recognitionRef.current?.start(); } catch(e){}
       setIsListening(true);
     }
@@ -238,6 +271,23 @@ function App() {
       </div>
     );
   }
+
+  if (!isInitialized) {
+    return (
+      <div className="jarvis-os" style={{ justifyContent: 'center', alignItems: 'center' }}>
+        <div className="arc-reactor processing" style={{ borderColor: 'var(--jarvis-blue)' }}>
+           <div className="arc-core" style={{ background: 'var(--jarvis-blue)' }}></div>
+        </div>
+        <h2 style={{ color: 'var(--jarvis-blue)', marginTop: '20px', fontFamily: 'var(--font-mono)' }}>SYSTEM UNLOCKED</h2>
+        <button onClick={() => {
+          setIsInitialized(true);
+          playActivationSound();
+          setTimeout(() => speak('Systems online. Welcome back, Sir.'), 500);
+        }} style={{ marginTop: '30px', background: 'rgba(0, 240, 255, 0.2)', color: 'var(--jarvis-blue)', border: '1px solid var(--jarvis-blue)', padding: '15px 30px', fontSize: '1.2rem', fontFamily: 'var(--font-mono)', cursor: 'pointer', borderRadius: '5px' }}>INITIATE JARVIS</button>
+      </div>
+    );
+  }
+
 
   return (
     <div className="jarvis-os">
