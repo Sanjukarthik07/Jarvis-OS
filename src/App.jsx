@@ -187,7 +187,7 @@ function App() {
     }
   };
 
-  const toggleListening = (forceStart = false) => {
+  const toggleListening = async (forceStart = false) => {
     if (isListening && !forceStart) {
       recognitionRef.current?.stop();
       setIsListening(false);
