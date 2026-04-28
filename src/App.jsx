@@ -3,6 +3,8 @@ import { LocalNotifications } from '@capacitor/local-notifications';
 import { TextToSpeech } from '@capacitor-community/text-to-speech';
 import { Camera, CameraResultType, CameraSource } from '@capacitor/camera';
 import { NativeBiometric } from '@capgo/capacitor-native-biometric';
+import { Device } from '@capacitor/device';
+import { Haptics, ImpactStyle } from '@capacitor/haptics';
 import './App.css';
 
 function App() {
@@ -28,7 +30,23 @@ function App() {
   const [voices, setVoices] = useState([]);
   const [selectedVoiceURI, setSelectedVoiceURI] = useState(localStorage.getItem('jarvis-voice') || '');
 
+  const [batteryInfo, setBatteryInfo] = useState({ batteryLevel: 1 });
+  const [latency, setLatency] = useState('14ms');
+
   const recognitionRef = useRef(null);
+
+  useEffect(() => {
+    const fetchTelemetry = async () => {
+      try {
+        const info = await Device.getBatteryInfo();
+        setBatteryInfo(info);
+      } catch(e){}
+      setLatency(Math.floor(Math.random() * 20 + 8) + 'ms');
+    };
+    fetchTelemetry();
+    const interval = setInterval(fetchTelemetry, 3000);
+    return () => clearInterval(interval);
+  }, []);
 
   useEffect(() => {
     const loadVoices = () => {
@@ -175,6 +193,7 @@ function App() {
       setIsListening(false);
     } else {
       setTranscript('');
+      try { await Haptics.impact({ style: ImpactStyle.Light }); } catch(e){}
       playSiriBeep();
       try { recognitionRef.current?.start(); } catch(e){}
       setIsListening(true);
@@ -220,7 +239,8 @@ function App() {
     setCapturedImage(null);
   };
 
-  const processCommand = (cmd) => {
+  const processCommand = async (cmd) => {
+    try { await Haptics.impact({ style: ImpactStyle.Medium }); } catch(e){}
     const text = cmd.toLowerCase();
 
     if (isPromptingTodo) {
@@ -249,6 +269,7 @@ function App() {
   };
 
   const speak = async (text) => {
+    try { await Haptics.impact({ style: ImpactStyle.Heavy }); } catch(e){}
     setResponse(text);
     if ('speechSynthesis' in window) {
       const utterance = new SpeechSynthesisUtterance(text);
@@ -291,6 +312,12 @@ function App() {
 
   return (
     <div className="jarvis-os">
+      <div className="scanline"></div>
+      <div className="hud-telemetry">
+        <div className="telemetry-row">PWR_LVL: <span>{Math.round(batteryInfo.batteryLevel * 100)}%</span></div>
+        <div className="telemetry-row">Q_UPLINK: <span>{latency}</span></div>
+        <div className="telemetry-row">SEC_PROTO: <span>ACTIVE</span></div>
+      </div>
       <header className="jarvis-header">
         <div className="status-indicator">
           <div className="status-dot"></div>
