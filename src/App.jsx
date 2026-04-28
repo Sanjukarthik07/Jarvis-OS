@@ -24,10 +24,27 @@ function App() {
   const [isPromptingTodo, setIsPromptingTodo] = useState(false);
   const [isProcessingLLM, setIsProcessingLLM] = useState(false);
   const [capturedImage, setCapturedImage] = useState(null);
+  
+  const [voices, setVoices] = useState([]);
+  const [selectedVoiceURI, setSelectedVoiceURI] = useState(localStorage.getItem('jarvis-voice') || '');
 
   const recognitionRef = useRef(null);
 
   useEffect(() => {
+    const loadVoices = () => {
+      let v = window.speechSynthesis.getVoices();
+      if (v.length > 0) {
+        setVoices(v);
+        if (!localStorage.getItem('jarvis-voice')) {
+           const defaultVoice = v.find(voice => voice.lang === 'en-GB' || voice.lang === 'en-US') || v[0];
+           setSelectedVoiceURI(defaultVoice.voiceURI);
+        }
+      }
+    };
+    loadVoices();
+    if (window.speechSynthesis.onvoiceschanged !== undefined) {
+      window.speechSynthesis.onvoiceschanged = loadVoices;
+    }
     performBiometricAuth();
   }, []);
 
@@ -56,33 +73,26 @@ function App() {
     setResponse('Biometric signature verified.');
   };
 
-  const playActivationSound = () => {
+  const playSiriBeep = () => {
     try {
       const ctx = new (window.AudioContext || window.webkitAudioContext)();
-      const osc1 = ctx.createOscillator();
-      const gain1 = ctx.createGain();
-      osc1.type = 'sine';
-      osc1.frequency.setValueAtTime(880, ctx.currentTime);
-      osc1.frequency.exponentialRampToValueAtTime(1760, ctx.currentTime + 0.1);
-      gain1.gain.setValueAtTime(0, ctx.currentTime);
-      gain1.gain.linearRampToValueAtTime(0.1, ctx.currentTime + 0.05);
-      gain1.gain.linearRampToValueAtTime(0, ctx.currentTime + 0.15);
-      osc1.connect(gain1);
-      gain1.connect(ctx.destination);
-      osc1.start();
-      osc1.stop(ctx.currentTime + 0.15);
-
-      const osc2 = ctx.createOscillator();
-      const gain2 = ctx.createGain();
-      osc2.type = 'sine';
-      osc2.frequency.setValueAtTime(1760, ctx.currentTime + 0.15);
-      gain2.gain.setValueAtTime(0, ctx.currentTime + 0.15);
-      gain2.gain.linearRampToValueAtTime(0.1, ctx.currentTime + 0.2);
-      gain2.gain.linearRampToValueAtTime(0, ctx.currentTime + 0.3);
-      osc2.connect(gain2);
-      gain2.connect(ctx.destination);
-      osc2.start(ctx.currentTime + 0.15);
-      osc2.stop(ctx.currentTime + 0.3);
+      const playTone = (freq, startTime, duration) => {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(freq, startTime);
+        gain.gain.setValueAtTime(0, startTime);
+        gain.gain.linearRampToValueAtTime(0.2, startTime + 0.05);
+        gain.gain.exponentialRampToValueAtTime(0.01, startTime + duration);
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start(startTime);
+        osc.stop(startTime + duration);
+      };
+      
+      // Siri-style double chime (A5, then C#6 slightly after)
+      playTone(880, ctx.currentTime, 0.2); 
+      playTone(1108.73, ctx.currentTime + 0.1, 0.3);
     } catch (e) {
       console.log('Audio API not supported');
     }
@@ -165,7 +175,7 @@ function App() {
       setIsListening(false);
     } else {
       setTranscript('');
-      playActivationSound();
+      playSiriBeep();
       try { recognitionRef.current?.start(); } catch(e){}
       setIsListening(true);
     }
@@ -240,22 +250,12 @@ function App() {
 
   const speak = async (text) => {
     setResponse(text);
-    try {
-      await TextToSpeech.speak({
-        text: text,
-        lang: 'en-GB',
-        rate: 1.0,
-        pitch: 1.0,
-        category: 'ambient',
-      });
-    } catch (e) {
-      if ('speechSynthesis' in window) {
-        const utterance = new SpeechSynthesisUtterance(text);
-        const voices = window.speechSynthesis.getVoices();
-        const ukVoice = voices.find(v => v.lang === 'en-GB' && v.name.includes('Male')) || voices.find(v => v.lang === 'en-GB');
-        if (ukVoice) utterance.voice = ukVoice;
-        window.speechSynthesis.speak(utterance);
-      }
+    if ('speechSynthesis' in window) {
+      const utterance = new SpeechSynthesisUtterance(text);
+      const availableVoices = window.speechSynthesis.getVoices();
+      const chosenVoice = availableVoices.find(v => v.voiceURI === selectedVoiceURI);
+      if (chosenVoice) utterance.voice = chosenVoice;
+      window.speechSynthesis.speak(utterance);
     }
   };
 
@@ -281,7 +281,7 @@ function App() {
         <h2 style={{ color: 'var(--jarvis-blue)', marginTop: '20px', fontFamily: 'var(--font-mono)' }}>SYSTEM UNLOCKED</h2>
         <button onClick={() => {
           setIsInitialized(true);
-          playActivationSound();
+          playSiriBeep();
           setTimeout(() => speak('Systems online. Welcome back, Sir.'), 500);
         }} style={{ marginTop: '30px', background: 'rgba(0, 240, 255, 0.2)', color: 'var(--jarvis-blue)', border: '1px solid var(--jarvis-blue)', padding: '15px 30px', fontSize: '1.2rem', fontFamily: 'var(--font-mono)', cursor: 'pointer', borderRadius: '5px' }}>INITIATE JARVIS</button>
       </div>
@@ -307,9 +307,15 @@ function App() {
 
       <main className="jarvis-main">
         {showSettings ? (
-          <div className="settings-panel" style={{ width: '100%', maxWidth: '400px', background: 'var(--jarvis-panel)', padding: '20px', borderRadius: '8px', border: '1px solid var(--jarvis-blue)' }}>
-            <h3 style={{ color: '#fff', marginBottom: '15px' }}>Quantum Uplink Configuration</h3>
-            <form onSubmit={(e) => { e.preventDefault(); localStorage.setItem('jarvis-llm-key', apiKey); setShowSettings(false); speak('Settings saved, Sir.'); }}>
+          <div className="settings-panel" style={{ width: '100%', maxWidth: '400px', background: 'var(--jarvis-panel)', padding: '20px', borderRadius: '8px', border: '1px solid var(--jarvis-blue)', overflowY: 'auto', maxHeight: '80vh' }}>
+            <h3 style={{ color: '#fff', marginBottom: '15px' }}>Configuration</h3>
+            <form onSubmit={(e) => { e.preventDefault(); localStorage.setItem('jarvis-llm-key', apiKey); localStorage.setItem('jarvis-voice', selectedVoiceURI); setShowSettings(false); speak('Settings saved.'); }}>
+              
+              <label style={{ color: 'var(--jarvis-border)', fontSize: '0.8rem', display: 'block', marginBottom: '5px' }}>ASSISTANT VOICE:</label>
+              <select value={selectedVoiceURI} onChange={(e) => setSelectedVoiceURI(e.target.value)} style={{ width: '100%', padding: '10px', background: 'rgba(0,0,0,0.5)', border: '1px solid var(--jarvis-blue)', color: 'var(--jarvis-blue)', marginBottom: '15px', fontFamily: 'var(--font-mono)' }}>
+                {voices.map(v => <option key={v.voiceURI} value={v.voiceURI}>{v.name} ({v.lang})</option>)}
+              </select>
+
               <label style={{ color: 'var(--jarvis-border)', fontSize: '0.8rem', display: 'block', marginBottom: '5px' }}>GEMINI API KEY:</label>
               <input type="password" value={apiKey} onChange={(e) => setApiKey(e.target.value)} style={{ width: '100%', padding: '10px', background: 'rgba(0,0,0,0.5)', border: '1px solid var(--jarvis-blue)', color: 'var(--jarvis-blue)', marginBottom: '15px', fontFamily: 'var(--font-mono)' }} />
               
