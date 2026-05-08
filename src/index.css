@@ -1,12 +1,13 @@
 :root {
-  --jarvis-blue: #00f0ff;
-  --jarvis-blue-dim: rgba(0, 240, 255, 0.2);
-  --jarvis-blue-glow: 0 0 10px rgba(0, 240, 255, 0.5), 0 0 20px rgba(0, 240, 255, 0.3);
+  --jarvis-blue: #0088ff;
+  --jarvis-cyan: #00f0ff;
+  --jarvis-blue-dim: rgba(0, 240, 255, 0.1);
+  --jarvis-blue-glow: 0 0 15px rgba(0, 240, 255, 0.4), 0 0 30px rgba(0, 240, 255, 0.2);
   --jarvis-orange: #ffaa00;
   --jarvis-red: #ff3333;
-  --jarvis-bg: #050b14;
-  --jarvis-panel: rgba(10, 20, 35, 0.7);
-  --jarvis-border: rgba(0, 240, 255, 0.3);
+  --jarvis-bg: #02060d;
+  --jarvis-panel: rgba(10, 20, 35, 0.5);
+  --jarvis-border: rgba(255, 255, 255, 0.1);
   
   --font-main: 'Rajdhani', sans-serif;
   --font-mono: 'Share Tech Mono', monospace;

@@ -53,14 +53,14 @@ We will use **Ionic Appflow** (or Codemagic) to act as our surrogate Mac and And
 
 ---
 
-## Quantum Matrix Configuration (API Key)
+## Quantum Matrix Configuration
 
-Once you install the app on your mobile device, the "Quantum Matrix" (LLM Intelligence) will be offline until authenticated.
+The JARVIS Prime app now utilizes the free, keyless **Pollinations AI** infrastructure for its Quantum Matrix (LLM Intelligence), meaning no API keys or quotas are required. It is fully operational out-of-the-box.
 
 1. Open the JARVIS app.
 2. Tap the **CONFIG** button in the top right corner.
-3. Paste your [Google Gemini API Key](https://aistudio.google.com/).
+3. Configure your **Assistant Voice**.
 4. (Optional) Check the **Enable Wake Engine** box for continuous microphone listening.
-5. Click **SAVE**. 
+5. Click **SAVE**.
 
 The system is now fully operational, Sir.
