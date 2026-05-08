@@ -1,0 +1,5 @@
+{
+  "environment": {
+    "ENABLE_SPM_SUPPORT": "true"
+  }
+}
