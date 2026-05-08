@@ -56,14 +56,17 @@ function App() {
 
   useEffect(() => {
     const loadVoices = () => {
-      let v = window.speechSynthesis.getVoices();
-      if (v.length > 0) {
-        setVoices(v);
-        if (!localStorage.getItem('jarvis-voice')) {
-           const defaultVoice = v.find(voice => voice.lang === 'en-GB' || voice.lang === 'en-US') || v[0];
-           setSelectedVoiceURI(defaultVoice.voiceURI);
+      if (!window.speechSynthesis) return;
+      try {
+        let v = window.speechSynthesis.getVoices();
+        if (v.length > 0) {
+          setVoices(v);
+          if (!localStorage.getItem('jarvis-voice')) {
+             const defaultVoice = v.find(voice => voice.lang === 'en-GB' || voice.lang === 'en-US') || v[0];
+             setSelectedVoiceURI(defaultVoice.voiceURI);
+          }
         }
-      }
+      } catch(e) {}
     };
     loadVoices();
     if (window.speechSynthesis.onvoiceschanged !== undefined) {
@@ -664,7 +667,7 @@ Use this real-time data seamlessly if asked about status, time, environment, pla
              <div className="arc-core"></div>
            </div>
         </div>
-        <h2 style={{ color: 'var(--jarvis-red)', marginTop: '20px', fontFamily: 'var(--font-mono)' }}>SYSTEM LOCKED</h2>
+        <h2 onClick={unlockSystem} style={{ color: 'var(--jarvis-red)', marginTop: '20px', fontFamily: 'var(--font-mono)', cursor: 'pointer' }}>SYSTEM LOCKED</h2>
         <p style={{ color: 'rgba(255,255,255,0.6)' }}>{authError || 'Awaiting Biometric Scan...'}</p>
         <button onClick={performBiometricAuth} className="primary-btn" style={{ marginTop: '20px', background: 'transparent', color: 'var(--jarvis-cyan)', border: '1px solid var(--jarvis-cyan)', padding: '10px' }}>RETRY SCAN</button>
       </div>
