@@ -5,6 +5,7 @@ import { NativeBiometric } from '@capgo/capacitor-native-biometric';
 import { Device } from '@capacitor/device';
 import { Haptics, ImpactStyle } from '@capacitor/haptics';
 import { TextToSpeech } from '@capacitor-community/text-to-speech';
+import { Browser } from '@capacitor/browser';
 import './App.css';
 
 function App() {
@@ -484,6 +485,14 @@ Use this real-time data seamlessly if asked about status, time, environment, pla
       await speak("Evening protocol initiated. I have signaled the smart home grid to adjust lighting, Sir. (IoT Stub Executed)");
     } else if (finalCommand.includes("morning briefing") || finalCommand.includes("agenda")) {
       initiateMorningBriefing();
+    } else if (finalCommand.includes("search for")) {
+      const query = finalCommand.split("search for")[1].trim();
+      await speak(`Searching the global database for ${query}.`);
+      try {
+        await Browser.open({ url: `https://www.google.com/search?q=${encodeURIComponent(query)}` });
+      } catch (e) {
+        window.location.href = `https://www.google.com/search?q=${encodeURIComponent(query)}`;
+      }
     } else if (finalCommand.includes("flights from") || finalCommand.includes("flight from")) {
       try {
         let route = finalCommand.split("from")[1].trim();
@@ -491,7 +500,7 @@ Use this real-time data seamlessly if asked about status, time, environment, pla
           let origin = route.split("to")[0].trim();
           let dest = route.split("to")[1].trim();
           await speak(`Scanning the global aviation database. Locating the most cost-effective flights from ${origin} to ${dest}. Routing live rates to your display now, Sir.`);
-          window.location.href = `https://www.google.com/travel/flights?q=Flights%20from%20${encodeURIComponent(origin)}%20to%20${encodeURIComponent(dest)}`;
+          await Browser.open({ url: `https://www.google.com/travel/flights?q=Flights%20from%20${encodeURIComponent(origin)}%20to%20${encodeURIComponent(dest)}` });
         } else {
           await speak("Please specify your origin and destination, Sir. For example, say 'find flights from London to Paris'.");
         }
@@ -540,35 +549,45 @@ Use this real-time data seamlessly if asked about status, time, environment, pla
     } else if (finalCommand.includes("open youtube")) {
       await speak("Right away, Sir. Opening YouTube.");
       try {
-        const win = window.open('https://www.youtube.com', '_blank');
-        if (!win || win.closed || typeof win.closed === 'undefined') {
-          window.location.href = 'https://www.youtube.com';
-        }
+        await Browser.open({ url: 'https://www.youtube.com' });
       } catch (e) {
         window.location.href = 'https://www.youtube.com';
       }
     } else if (finalCommand.includes("open google") || finalCommand.includes("gmail")) {
       await speak("Right away, Sir. Opening Google.");
       try {
-        const win = window.open('https://www.google.com', '_blank');
-        if (!win || win.closed || typeof win.closed === 'undefined') {
-          window.location.href = 'https://www.google.com';
-        }
+        await Browser.open({ url: 'https://www.google.com' });
       } catch (e) {
         window.location.href = 'https://www.google.com';
       }
     } else if (finalCommand.includes("open facebook")) {
       await speak("Accessing Facebook, Sir.");
-      window.location.href = 'https://www.facebook.com';
+      try {
+        await Browser.open({ url: 'https://www.facebook.com' });
+      } catch (e) {
+        window.location.href = 'https://www.facebook.com';
+      }
     } else if (finalCommand.includes("open gizmodo")) {
       await speak("Accessing Gizmodo network.");
-      window.location.href = 'https://gizmodo.com';
+      try {
+        await Browser.open({ url: 'https://gizmodo.com' });
+      } catch (e) {
+        window.location.href = 'https://gizmodo.com';
+      }
     } else if (finalCommand.includes("open lifehacker")) {
       await speak("Accessing Lifehacker, Sir.");
-      window.location.href = 'https://lifehacker.com';
+      try {
+        await Browser.open({ url: 'https://lifehacker.com' });
+      } catch (e) {
+        window.location.href = 'https://lifehacker.com';
+      }
     } else if (finalCommand.includes("open rainmeter")) {
       await speak("Accessing DeviantArt Rainmeter archive.");
-      window.location.href = 'https://www.deviantart.com/rainmeter';
+      try {
+        await Browser.open({ url: 'https://www.deviantart.com/rainmeter' });
+      } catch (e) {
+        window.location.href = 'https://www.deviantart.com/rainmeter';
+      }
     } else if (finalCommand.includes("open photoshop") || finalCommand.includes("open word") || finalCommand.includes("open excel")) {
       await speak("I cannot launch local desktop applications from this web interface, Sir, but the UI link is responsive.");
     } else if (finalCommand.includes("search wikipedia for") || (finalCommand.includes("wikipedia") && finalCommand.split("wikipedia")[1]?.trim().length > 0)) {
@@ -660,12 +679,13 @@ Use this real-time data seamlessly if asked about status, time, environment, pla
         <div className="arc-reactor-container">
            <div className="mark4-grid"></div>
            <div className="mark4-grid-inner"></div>
-           <div className="arc-reactor" style={{ animationPlayState: 'paused' }}>
-             <div className="arc-ring ring-1"></div>
-             <div className="arc-ring ring-2"></div>
-             <div className="arc-ring ring-3"></div>
-             <div className="arc-core"></div>
-           </div>
+            <div className="arc-reactor" style={{ animationPlayState: 'paused' }}>
+              <div className="arc-ring ring-1"></div>
+              <div className="arc-ring ring-2"></div>
+              <div className="arc-ring ring-3"></div>
+              <div className="arc-core"></div>
+              <div className="scanner-line"></div>
+            </div>
         </div>
         <h2 onClick={unlockSystem} style={{ color: 'var(--jarvis-red)', marginTop: '20px', fontFamily: 'var(--font-mono)', cursor: 'pointer' }}>SYSTEM LOCKED</h2>
         <p style={{ color: 'rgba(255,255,255,0.6)' }}>{authError || 'Awaiting Biometric Scan...'}</p>
